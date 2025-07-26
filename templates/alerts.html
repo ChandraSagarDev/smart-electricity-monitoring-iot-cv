@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts | Enervise</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --dark: #1b263b;
+            --light: #f8f9fa;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --danger: #dc3545;
+            --sidebar-width: 280px;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 400;
+            src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZg.ttf) format('truetype');
+        }
+
+        @font-face {
+            font-family: 'Inter';
+            font-style: normal;
+            font-weight: 600;
+            src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYMZg.ttf) format('truetype');
+        }
+        
+        body {
+            display: flex;
+            background-color: #f5f7fa;
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        /* ===== Improved Sidebar Styles ===== */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: white;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            position: fixed;
+            z-index: 100;
+        }
+
+        /* Collapsed state */
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar.collapsed .logo-text,
+        .sidebar.collapsed .nav-text,
+        .sidebar.collapsed .user-details,
+        .sidebar.collapsed .nav-badge,
+        .sidebar.collapsed .sidebar-toggle i {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-toggle i {
+            display: block;
+            transform: rotate(180deg);
+        }
+
+        .sidebar.collapsed .nav-item {
+            position: relative;
+        }
+
+        .sidebar.collapsed .nav-item:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--dark);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            margin-left: 10px;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Logo Container */
+        .logo-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 15px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo svg {
+            width: 30px;
+            height: 30px;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            color: #777;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        /* Navigation Menu */
+        .nav-menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 0;
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 0 10px;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+            position: relative;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: #555;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover, .nav-item.active .nav-link {
+            background-color: rgba(67, 97, 238, 0.08);
+            color: var(--primary);
+        }
+
+        .nav-item.active .nav-link {
+            font-weight: 600;
+        }
+
+        .nav-link i {
+            width: 24px;
+            text-align: center;
+            font-size: 16px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .nav-text {
+            flex: 1;
+            transition: all 0.3s ease;
+        }
+
+        .nav-badge {
+            background: var(--primary-light);
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+
+        /* User Profile */
+        .user-profile {
+            padding: 15px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(67, 97, 238, 0.1);
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: #777;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .profile-btn {
+            background: none;
+            border: none;
+            color: #777;
+            cursor: pointer;
+            font-size: 15px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .profile-btn:hover {
+            background: rgba(0,0,0,0.05);
+            color: var(--dark);
+        }
+
+        .logout-btn:hover {
+            color: var(--warning);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 40px;
+            background-color: #f9fafc;
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar.collapsed ~ .main-content {
+            margin-left: 80px;
+        }
+
+        .alerts-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .alerts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .alerts-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .alerts-title i {
+            color: var(--primary);
+        }
+        
+        .clear-alerts-btn {
+            background-color: var(--warning);
+            color: white;
+            padding: 12px 24px;
+            border-radius: var(--border-radius);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+        
+        .clear-alerts-btn:hover {
+            background-color: #e3126f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(247, 37, 133, 0.3);
+        }
+        
+        .alert-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            border-left: 4px solid var(--primary);
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        
+        .alert-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+        }
+        
+        .alert-card.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .alert-card.danger {
+            border-left-color: var(--danger);
+        }
+        
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .alert-type {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        
+        .alert-type.warning {
+            background-color: rgba(247, 37, 133, 0.1);
+            color: var(--warning);
+        }
+        
+        .alert-type.danger {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+        
+        .alert-timestamp {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .alert-message {
+            font-size: 15px;
+            color: var(--dark);
+            line-height: 1.5;
+        }
+        
+        .no-alerts {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .no-alerts i {
+            font-size: 48px;
+            color: var(--success);
+            margin-bottom: 15px;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: white;
+            padding: 18px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 300px;
+            max-width: 400px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .toast-success {
+            border-left: 4px solid var(--success);
+        }
+        
+        .toast-warning {
+            border-left: 4px solid var(--warning);
+        }
+        
+        .toast-error {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .toast-message {
+            font-weight: 500;
+            font-size: 15px;
+        }
+        
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            margin-left: 15px;
+            padding: 0 5px;
+        }
+        
+        .toast-close:hover {
+            color: #666;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            :root {
+                --sidebar-width: 240px;
+            }
+            
+            .main-content {
+                padding: 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+                position: fixed;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+            
+            .alerts-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .clear-alerts-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .alerts-container {
+                padding: 15px 0;
+            }
+        }
+    </style>
+</head>
+<!-- Alerts Page: Displays user alerts and notifications -->
+<body>
+    <!-- Add notification div -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Improved Sidebar Navigation -->
+    <div class="sidebar">
+        <!-- Logo with Collapse Toggle -->
+        <div class="logo-container">
+            <div class="logo">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                </svg>
+                <span class="logo-text">Enervise</span>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <nav class="nav-menu">
+            <ul class="nav-list">
+                <li class="nav-item" data-tooltip="Camera Feed">
+                    <a href="/" class="nav-link">
+                        <i class="fas fa-video"></i>
+                        <span class="nav-text">Camera Feed</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-tooltip="Dashboard">
+                    <a href="/dashboard" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item active" data-tooltip="Alerts">
+                    <a href="/alerts" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span class="nav-text">Alerts</span>
+                        <span class="nav-badge" id="alerts-count">{{ alert_count }}</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-tooltip="Profile">
+                    <a href="/profile" class="nav-link">
+                        <i class="fas fa-user"></i>
+                        <span class="nav-text">Profile</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- User Profile Section -->
+        <div class="user-profile">
+            <div class="profile-info">
+                <img src="https://ui-avatars.com/api/?name={{ user_name }}&background=4361ee&color=fff" alt="User" class="user-avatar">
+                <div class="user-details">
+                    <div class="user-name">{{ user_name }}</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+            </div>
+            <div class="profile-actions">
+                <button class="profile-btn" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                </button>
+                <button class="profile-btn logout-btn" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <div class="alerts-container">
+            <div class="alerts-header">
+                <h1 class="alerts-title">
+                    <i class="fas fa-bell"></i>
+                    Alerts
+                </h1>
+                <button onclick="clearAllAlerts()" class="clear-alerts-btn">
+                    <i class="fas fa-trash-alt"></i>
+                    Clear All
+                </button>
+            </div>
+            
+            <div id="alerts-list">
+                <!-- Alerts will be dynamically inserted here -->
+                <div class="no-alerts">
+                    <i class="fas fa-check-circle"></i>
+                    <p>No alerts to display</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar Toggle Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            
+            // Desktop toggle
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+            });
+            
+            // Load saved state
+            if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                sidebar.classList.add('collapsed');
+            }
+            
+            // Update active nav item
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    navItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function updateAlerts() {
+            fetch('/get_alerts')
+                .then(response => response.json())
+                .then(alerts => {
+                    const alertsList = document.getElementById('alerts-list');
+                    const alertsCount = document.getElementById('alerts-count');
+                    
+                    // Update alerts count in sidebar
+                    alertsCount.textContent = alerts.length;
+                    
+                    if (alerts.length === 0) {
+                        alertsList.innerHTML = `
+                            <div class="no-alerts">
+                                <i class="fas fa-check-circle"></i>
+                                <p>No alerts to display</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    alertsList.innerHTML = alerts.map(alert => `
+                        <div class="alert-card ${alert.type}" data-id="${alert.id}">
+                            <div class="alert-header">
+                                <span class="alert-type ${alert.type}">${alert.type}</span>
+                                <span class="alert-timestamp">${formatTimestamp(alert.timestamp)}</span>
+                            </div>
+                            <div class="alert-message">${alert.message}</div>
+                        </div>
+                    `).join('');
+                })
+                .catch(error => console.error('Error fetching alerts:', error));
+        }
+
+        function clearAllAlerts() {
+            if (confirm('Are you sure you want to clear all alerts?')) {
+                fetch('/clear_alerts', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('All alerts cleared successfully', 'success');
+                        updateAlerts();
+                    } else {
+                        showToast('Failed to clear alerts', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error clearing alerts:', error);
+                    showToast('Error clearing alerts', 'error');
+                });
+            }
+        }
+
+        // Enhanced toast notification
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-message">${message}</div>
+                <button class="toast-close">&times;</button>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+            
+            toast.querySelector('.toast-close').addEventListener('click', () => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            });
+        }
+
+        // Update alerts every 30 seconds
+        updateAlerts();
+        setInterval(updateAlerts, 30000);
+
+        // Logout button handler
+        document.querySelector('.logout-btn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                // In a real app, you would call your Flask logout endpoint
+                // fetch('/api/logout', { method: 'POST' })
+                //     .then(() => window.location.href = '/login');
+                
+                // For demo purposes:
+                window.location.href = '/logout';
+            }
+        });
+    </script>
+</body>
+</html>
