@@ -209,7 +209,3 @@ Contributions are welcome! Please follow these steps:
 - Chart.js for data visualization
 - HTML/CSS/JavaScript for frontend
 - Gemini API for text extraction
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
