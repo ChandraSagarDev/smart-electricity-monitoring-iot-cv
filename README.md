@@ -128,12 +128,28 @@ energy-meter-monitor/
 ├── .env                  # Environment variables (create this file)
 ├── chromedriver.exe      # ChromeDriver for Selenium
 ├── readings.db           # SQLite database (created on first run)
-├── input/                # Stores captured meter images
-└── templates/            # HTML templates
-    ├── Login.html        # Login page
-    ├── dashboard.html    # Main dashboard
-    ├── profile.html      # User profile
-    └── alerts.html       # System alerts
+├── static/               # Static assets
+│   ├── css/              # Stylesheets
+│   │   ├── style.css     # Global styles
+│   │   ├── login.css     # Login page styles
+│   │   ├── dashboard.css # Dashboard styles
+│   │   ├── alerts.css    # Alerts page styles
+│   │   ├── profile.css   # Profile page styles
+│   │   └── index.css     # Camera feed page styles
+│   └── js/               # JavaScript files
+│       ├── main.js       # Global JavaScript
+│       ├── login.js      # Login page functionality
+│       ├── dashboard.js  # Dashboard functionality
+│       ├── alerts.js     # Alerts page functionality
+│       ├── profile.js    # Profile page functionality
+│       └── index.js      # Camera feed functionality
+├── templates/            # HTML templates
+│   ├── login.html        # Login page
+│   ├── dashboard.html    # Main dashboard
+│   ├── profile.html      # User profile
+│   ├── alerts.html       # System alerts
+│   └── index.html        # Camera feed
+└── input/                # Stores captured meter images
 ```
 
 ## 📚 API Documentation
