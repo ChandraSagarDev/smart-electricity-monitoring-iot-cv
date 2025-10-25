@@ -55,7 +55,7 @@ A real-time energy meter monitoring system that uses computer vision to capture 
 - Python 3.8 or higher
 - Google Chrome (for Selenium web scraping)
 - Webcam (for meter reading capture)
-- Google Gemini API key (for text extraction)
+- Roboflow API key (for meter reading extraction)
 
 ## 💻 Installation
 
@@ -78,9 +78,11 @@ pip install -r requirements.txt
 
 ## ⚙️ Configuration
 
-1. Create a `.env` file in the project root and add your Gemini API key:
+1. Create a `.env` file in the project root and add your Roboflow credentials:
 ```env
-GEMINI_API_KEY=your_api_key_here
+ROBOFLOW_API_KEY=your_roboflow_api_key_here
+ROBOFLOW_MODEL_ID=your_model_id_here
+ROBOFLOW_API_URL=https://serverless.roboflow.com
 ```
 
 2. Initialize the database:
@@ -121,7 +123,7 @@ energy-meter-monitor/
 ├── billing.py            # Billing calculations and tariff logic
 ├── bill_calc.py          # Selenium-based bill calculation
 ├── database.py           # Database models and operations
-├── extract_text.py       # Text extraction using Gemini Vision API
+├── extract_text.py       # Text extraction using Roboflow API
 ├── test_billing.py       # Unit tests for billing logic
 ├── test_image.py         # Tests for image processing
 ├── requirements.txt      # Python dependencies
@@ -186,7 +188,7 @@ Contributions are welcome! Please follow these steps:
 ## 🙏 Acknowledgments
 
 - Built with [Flask](https://flask.palletsprojects.com/)
-- Uses [Google's Gemini Vision API](https://ai.google.dev/) for text extraction
+- Uses [Roboflow API](https://roboflow.com/) for meter reading extraction
 - Charts powered by [Chart.js](https://www.chartjs.org/)
 │   ├── index.html     # Camera feed page
 │   ├── dashboard.html # Dashboard page
@@ -224,4 +226,4 @@ Contributions are welcome! Please follow these steps:
 - SQLite for data storage
 - Chart.js for data visualization
 - HTML/CSS/JavaScript for frontend
-- Gemini API for text extraction
+- Roboflow API for meter reading extraction

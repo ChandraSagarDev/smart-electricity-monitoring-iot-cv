@@ -3,22 +3,30 @@ import pathlib
 import re
 from PIL import Image
 import base64
-import google.generativeai as genai
-from google.generativeai import types
+import requests
+import json
 from dotenv import load_dotenv
 import time
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Initializes and returns the Gemini Vision API client using the API key from the environment.
-def setup_gemini():
-    """Initialize Gemini API with the API key."""
-    api_key = os.getenv("GEMINI_API_KEY")
+def setup_roboflow():
+    """Initialize Roboflow client configuration from environment variables."""
+    api_url = os.getenv("ROBOFLOW_API_URL", "https://serverless.roboflow.com")
+    api_key = os.getenv("ROBOFLOW_API_KEY")
+    model_id = os.getenv("ROBOFLOW_MODEL_ID")
+    
     if not api_key:
-        raise ValueError("Please set GEMINI_API_KEY in the .env file")
-    genai.configure(api_key=api_key)
-    return genai.GenerativeModel('gemini-1.5-flash')  # Using the suggested model
+        raise ValueError("Please set ROBOFLOW_API_KEY in the .env file")
+    if not model_id:
+        raise ValueError("Please set ROBOFLOW_MODEL_ID in the .env file")
+    
+    return {
+        'api_url': api_url,
+        'api_key': api_key,
+        'model_id': model_id
+    }
 
 def extract_kwh_values(text):
     """Extract KWh values from text using regex patterns."""
@@ -43,38 +51,64 @@ def extract_kwh_values(text):
     
     return found_values
 
-def process_image(model, image_path):
-    """Extract KWh readings from an image using Gemini Vision."""
+def process_image(client_config, image_path):
+    """Extract KWh readings from an image using Roboflow."""
     try:
         print(f"\nProcessing image: {image_path}")
         
-        # Open and convert image
-        img = Image.open(image_path)
-        if img.mode != 'RGB':
-            img = img.convert('RGB')
+        # Prepare the API request
+        url = f"{client_config['api_url']}/{client_config['model_id']}"
+        
+        # Read and encode the image
+        with open(image_path, 'rb') as image_file:
+            image_data = image_file.read()
+        
+        # Prepare headers
+        headers = {
+            'Authorization': f"Bearer {client_config['api_key']}"
+        }
+        
+        # Prepare files for multipart upload
+        files = {
+            'file': ('image.jpg', image_data, 'image/jpeg')
+        }
+        
+        # Make the API request
+        response = requests.post(url, headers=headers, files=files)
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"Raw Roboflow response: {result}")  # Debug print
             
-        prompt = (
-            "This is an electricity meter reading image. "
-            "Please identify and extract any numbers that represent electricity consumption. "
-            "Look for patterns like 'KWh', 'units', or similar values. "
-            "Return ONLY the number you see, with 'KWh' unit if visible. "
-            "If no valid reading is found, return 'No KWh readings found'."
-        )
-        
-        response = model.generate_content([prompt, img])
-        extracted_text = response.text
-        print(f"Raw extracted text from Gemini: {extracted_text}")  # Debug print
-        
-        # Extract KWh values from the response
-        kwh_values = extract_kwh_values(extracted_text)
-        print(f"All found KWh values: {kwh_values}")  # Debug print
-        
-        if not kwh_values:
-            print("No KWh values found in the text")  # Debug print
+            # Extract predictions from Roboflow response
+            predictions = result.get('predictions', [])
+            if not predictions:
+                print("No predictions found in Roboflow response")
+                return "No KWh readings found"
+            
+            # Extract text from predictions (assuming OCR results)
+            extracted_text = ""
+            for prediction in predictions:
+                if 'text' in prediction:
+                    extracted_text += prediction['text'] + " "
+                elif 'class' in prediction:
+                    extracted_text += prediction['class'] + " "
+            
+            print(f"Extracted text from Roboflow: {extracted_text}")  # Debug print
+            
+            # Extract KWh values from the response
+            kwh_values = extract_kwh_values(extracted_text)
+            print(f"All found KWh values: {kwh_values}")  # Debug print
+            
+            if not kwh_values:
+                print("No KWh values found in the text")  # Debug print
+                return "No KWh readings found"
+            
+            # Return the first valid reading found
+            return f"{kwh_values[0]:.0f} KWh"
+        else:
+            print(f"Roboflow API error: {response.status_code} - {response.text}")
             return "No KWh readings found"
-        
-        # Return the first valid reading found
-        return f"{kwh_values[0]:.0f} KWh"
         
     except Exception as e:
         print(f"Error processing image: {str(e)}")
@@ -83,9 +117,9 @@ def process_image(model, image_path):
 def main():
     """Main function for testing."""
     try:
-        # Initialize Gemini
-        model = setup_gemini()
-        print("Model initialized successfully")
+        # Initialize Roboflow
+        client_config = setup_roboflow()
+        print("Roboflow client initialized successfully")
         
         # Process all images in input directory
         input_dir = 'input'
@@ -97,7 +131,7 @@ def main():
                 if filename.endswith('.jpg'):
                     image_path = os.path.join(input_dir, filename)
                     print(f"\nProcessing {filename}...")
-                    reading = process_image(model, image_path)
+                    reading = process_image(client_config, image_path)
                     print(f"Reading: {reading}")
             
             time.sleep(5)  # Wait 5 seconds before checking again

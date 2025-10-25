@@ -7,7 +7,7 @@ import glob
 import numpy as np
 from flask import Flask, Response, render_template, jsonify, request, redirect, url_for, flash
 from datetime import datetime, timedelta
-from extract_text import setup_gemini, process_image
+from extract_text import setup_roboflow, process_image
 from database import init_db, save_reading, get_readings
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -215,8 +215,8 @@ def process_saved_images():
     Sets the initial reading, then tracks consumption changes and triggers billing logic.
     """
     global last_reading, last_reading_time, debug_info, initial_reading_value, current_phase, last_bill_amount
-    model = setup_gemini()
-    debug_info = "Model initialized"
+    client_config = setup_roboflow()
+    debug_info = "Roboflow client initialized"
     
     # Add 5-second delay before taking first reading
     if initial_reading_value is None:
@@ -232,9 +232,9 @@ def process_saved_images():
                 continue
             latest_enhanced = max(enhanced_files)
             latest_original = latest_enhanced.replace('enhanced_', 'original_')
-            reading = process_image(model, latest_enhanced)
+            reading = process_image(client_config, latest_enhanced)
             if not reading or reading == "No KWh readings found":
-                reading = process_image(model, latest_original)
+                reading = process_image(client_config, latest_original)
             if reading and reading != "No KWh readings found":
                 import re
                 numbers = re.findall(r'\d+\.?\d*', reading)
