@@ -209,3 +209,15 @@ function updateAlertsBadge() {
 }
 // Polling for alerts badge (optional for live updates only)
 setInterval(updateAlertsBadge, 30000);
+
+// Logout button functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutBtn = document.querySelector('.logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/logout';
+            }
+        });
+    }
+});

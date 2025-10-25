@@ -108,10 +108,10 @@ http://localhost:5000
 
 For testing and demonstration purposes, use the following credentials:
 
-- **Username**: `admin`
-- **Password**: `1234`
+- **Username**: `TestUser`
+- **Password**: `test123`
 
-> **Note**: These credentials are for demonstration only. In a production environment, please implement proper user authentication with secure password storage.
+> **Note**: These credentials are for demonstration only.
 
 4. Navigate to the Dashboard to view real-time meter readings and consumption analytics.
 

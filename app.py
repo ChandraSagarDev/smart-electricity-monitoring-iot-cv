@@ -80,8 +80,8 @@ def load_user(user_id):
     return User(user_id)
 
 # Demo credentials for login. Replace with a secure system for real deployments.
-VALID_EMAIL = "admin"
-VALID_PASSWORD = "1234"
+VALID_EMAIL = "TestUser"
+VALID_PASSWORD = "test123"
 
 # Application-wide state variables used for readings, billing, camera, and process control.
 last_reading = "No reading yet"
@@ -381,15 +381,15 @@ def login():
     Always redirects after form submission for security.
     """
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '').strip()
         
         if email == VALID_EMAIL and password == VALID_PASSWORD:
             user = User(email)
             login_user(user)
             return redirect(url_for('index'))  # Always redirect after login
         else:
-            flash('Invalid email or password')
+            flash('Invalid username or password')
             return redirect(url_for('login', email=email))  # Redirect after failed login, preserve username
     return render_template('Login.html')
 
@@ -408,9 +408,20 @@ def index():
     Redirects users to the login page if they are not authenticated.
     Otherwise, shows the main index page.
     """
-    if not current_user.is_authenticated:
+    # More explicit authentication check
+    if not hasattr(current_user, 'is_authenticated') or not current_user.is_authenticated:
         return redirect(url_for('login'))
     return render_template('index.html')
+
+# Define a route to clear sessions (for testing)
+@app.route('/clear_sessions')
+def clear_sessions():
+    """
+    Clears all Flask-Login sessions and redirects to login.
+    Useful for testing and forcing logout.
+    """
+    logout_user()
+    return redirect(url_for('login'))
 
 # Define a route for the dashboard
 @app.route('/dashboard')
